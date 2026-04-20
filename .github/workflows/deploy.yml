@@ -1,0 +1,47 @@
+name: ビルド & Hostingerへデプロイ
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # コード取得
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      # Node環境セットアップ
+      - name: Node.jsセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # 依存関係インストール
+      - name: 依存関係インストール
+        run: npm ci
+
+      # ビルド実行
+      - name: ビルド
+        run: npm run build
+
+      # SSHキー設定
+      - name: SSHキー設定
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.HOSTINGER_ACTION_DEPLOY_KEY }}
+
+      # known_hosts登録（ポート指定あり）
+      - name: ホスト登録
+        run: |
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      # デプロイ（安全版：--deleteなし）
+      - name: デプロイ実行
+        run: |
+          rsync -avz \
+            -e "ssh -p ${{ secrets.SSH_PORT }}" \
+            dist/ \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/u303929511/domains/test.shagawa.work/public_html/
