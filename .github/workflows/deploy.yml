@@ -39,7 +39,7 @@ jobs:
       # known_hosts登録（ポート指定あり）
       - name: ホスト登録
         run: |
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       # デプロイ（安全版：--deleteなし）
       - name: デプロイ実行
